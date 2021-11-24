@@ -1,0 +1,5 @@
+venv
+.env
+.trash
+.idea
+matches.json
