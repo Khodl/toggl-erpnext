@@ -376,7 +376,6 @@ class OperateClient:
             for index_b, b in enumerate(entries):
                 if index_a < index_b:
                     if self.__adjust_specific_entry_overlap(a, b):
-                        print("Adjusted")
                         # Start again after adjustment
                         return self.__adjust_entries_overlap(entries)
 

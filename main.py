@@ -19,27 +19,35 @@ def get_dates():
     return get_date(sys.argv[1] + " 00:00:00"), get_date(sys.argv[2] + " 23:59:59")
 
 
-def import_entries(config):
-    date_from, date_to = get_dates()
+def get_page(config, date_from, date_to, entries=[], page=1):
     toggl = Toggl()
     toggl.setAPIKey(config["TOGGL_TOKEN"])
     response = toggl.getDetailedReport({
         "workspace_id": config["TOGGL_WORKSPACE"],
         "since": date_from,
-        "until": date_to
+        "until": date_to,
+        "page": page
     })
 
-    if response['total_count'] > response['per_page']:
-        raise Exception("Please select a smaller date interval, as pagination is not supported")
-
-    entries = []
     for element in response["data"]:
         date = dateutil.parser.isoparse(element['start'])
-        durationInHours = element['dur'] / (1000*3600)
+        durationInHours = element['dur'] / (1000 * 3600)
+        if element['project'] == None or element['client'] == None:
+            print("Entry without project or client:", element)
+            sys.exit()
         entries.append(
             OperateEntry(date, durationInHours, element['client'], element['project'], element['description'])
         )
+
+    if response['total_count'] > len(entries):
+        return get_page(config, date_from, date_to, entries, page+1)
+
     return entries
+
+
+def import_entries(config):
+    date_from, date_to = get_dates()
+    return get_page(config, date_from, date_to)
 
 
 def start_import():
